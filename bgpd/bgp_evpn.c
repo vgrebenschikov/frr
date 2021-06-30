@@ -2460,8 +2460,32 @@ static int install_evpn_route_entry_in_vrf(struct bgp *bgp_vrf,
 		pi->attr = attr_new;
 		pi->uptime = bgp_clock();
 	}
+<<<<<<< HEAD
 	/* as it is an importation, change nexthop */
 	bgp_path_info_set_flag(dest, pi, BGP_PATH_ANNC_NH_SELF);
+=======
+
+	/* Gateway IP nexthop should be resolved */
+	if (attr.evpn_overlay.type == OVERLAY_INDEX_GATEWAY_IP) {
+		if (bgp_find_or_add_nexthop(bgp_vrf, bgp_vrf, afi, safi, pi,
+					    NULL, 0, NULL))
+			bgp_path_info_set_flag(dest, pi, BGP_PATH_VALID);
+		else {
+			if (BGP_DEBUG(nht, NHT)) {
+				inet_ntop(pp->family,
+					  &attr.evpn_overlay.gw_ip,
+					  buf1, sizeof(buf1));
+				zlog_debug("%s: gateway IP NH unresolved",
+					   buf1);
+			}
+			bgp_path_info_unset_flag(dest, pi, BGP_PATH_VALID);
+		}
+	} else {
+
+		/* as it is an importation, change nexthop */
+		bgp_path_info_set_flag(dest, pi, BGP_PATH_ANNC_NH_SELF);
+	}
+>>>>>>> 654a5978f (bgpd: prevent routes loop through itself)
 
 	/* Link path to evpn nexthop */
 	bgp_evpn_path_nh_add(bgp_vrf, pi);
